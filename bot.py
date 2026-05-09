@@ -185,12 +185,16 @@ async def error_handler(update, context):
         except Exception:
             pass
 
-
-# ─── Entry Point ─────────────────────────────────────────────────────────────
+# Naya aur sahi tarika Render ke liye
 if __name__ == "__main__":
     # Health server thread mein chalaao
     health_thread = threading.Thread(target=run_health_server, daemon=True)
     health_thread.start()
 
-    # Bot chalaao
-    asyncio.run(main())
+    # Bot chalaao (Loop handling fix)
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(main())
+    except RuntimeError:
+        asyncio.run(main())
+
