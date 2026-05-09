@@ -185,16 +185,23 @@ async def error_handler(update, context):
         except Exception:
             pass
 
-# Naya aur sahi tarika Render ke liye
+# bot.py की आखिरी लाइन्स (if __name__ == "__main__": वाला हिस्सा) बदलें:
+
 if __name__ == "__main__":
-    # Health server thread mein chalaao
+    # Health server को अलग thread में शुरू करें
     health_thread = threading.Thread(target=run_health_server, daemon=True)
     health_thread.start()
 
-    # Bot chalaao (Loop handling fix)
+    # Bot चलाने का सबसे स्टेबल तरीका (Render/Linux के लिए)
     try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(main())
-    except RuntimeError:
         asyncio.run(main())
-
+    except (KeyboardInterrupt, SystemExit):
+        logger.info("Bot stopped!")
+    except RuntimeError as e:
+        if "Event loop is closed" in str(e) or "already running" in str(e):
+            # अगर लूप पहले से चल रहा है या बंद हो गया है, तो उसे यहाँ हैंडल करें
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(main())
+        else:
+            raise e
